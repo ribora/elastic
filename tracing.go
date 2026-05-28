@@ -3,6 +3,8 @@ package elastic
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 	"unicode/utf8"
 
@@ -96,8 +98,8 @@ func execute[T any](ctx context.Context, op string, index string, statement any,
 	ctx, span := provider.Tracer(instrumentationName).Start(ctx, "elastic."+op,
 		hilton.WithSpanKind(hilton.SpanKindClient),
 		hilton.WithAttributes(
-			hilton.StringAttr("db.system", "elasticsearch"),
-			hilton.StringAttr("db.operation", op),
+			hilton.StringAttr("db.system.name", "elasticsearch"),
+			hilton.StringAttr("db.operation.name", op),
 			hilton.StringAttr("db.collection.name", index),
 		),
 	)
@@ -109,19 +111,15 @@ func execute[T any](ctx context.Context, op string, index string, statement any,
 	start := time.Now()
 	defer func() {
 		took := time.Since(start).Seconds()
-		status := "ok"
+		attrs := []hilton.Attribute{
+			hilton.StringAttr("db.system.name", "elasticsearch"),
+			hilton.StringAttr("db.operation.name", op),
+		}
 		if err != nil {
-			status = "error"
 			span.RecordError(err)
 			span.SetStatus(hilton.StatusError, err.Error())
+			attrs = append(attrs, hilton.StringAttr("error.type", elasticErrorType(err)))
 		}
-
-		attrs := []hilton.Attribute{
-			hilton.StringAttr("db.system", "elasticsearch"),
-			hilton.StringAttr("db.operation", op),
-			hilton.StringAttr("status", status),
-		}
-
 		duration.Record(ctx, took, attrs...)
 		span.End()
 	}()
@@ -129,8 +127,18 @@ func execute[T any](ctx context.Context, op string, index string, statement any,
 	return f(ctx)
 }
 
+func elasticErrorType(err error) string {
+	switch {
+	case errors.Is(err, ErrWrongResponse):
+		return "wrong_response"
+	case errors.Is(err, ErrUnknownResponse):
+		return "unknown_response"
+	}
+	return fmt.Sprintf("%T", err)
+}
+
 func recordStatement(stmt any) hilton.Attribute {
-	const key = "db.statement"
+	const key = "db.query.text"
 
 	switch v := stmt.(type) {
 	case string:
