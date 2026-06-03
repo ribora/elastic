@@ -98,9 +98,9 @@ func execute[T any](ctx context.Context, op string, index string, statement any,
 	ctx, span := provider.Tracer(instrumentationName).Start(ctx, "elastic."+op,
 		hilton.WithSpanKind(hilton.SpanKindClient),
 		hilton.WithAttributes(
-			hilton.StringAttr("db.system.name", "elasticsearch"),
-			hilton.StringAttr("db.operation.name", op),
-			hilton.StringAttr("db.collection.name", index),
+			hilton.Attr("db.system.name", "elasticsearch"),
+			hilton.Attr("db.operation.name", op),
+			hilton.Attr("db.collection.name", index),
 		),
 	)
 
@@ -112,13 +112,13 @@ func execute[T any](ctx context.Context, op string, index string, statement any,
 	defer func() {
 		took := time.Since(start).Seconds()
 		attrs := []hilton.Attribute{
-			hilton.StringAttr("db.system.name", "elasticsearch"),
-			hilton.StringAttr("db.operation.name", op),
+			hilton.Attr("db.system.name", "elasticsearch"),
+			hilton.Attr("db.operation.name", op),
 		}
 		if err != nil {
 			span.RecordError(err)
 			span.SetStatus(hilton.StatusError, err.Error())
-			attrs = append(attrs, hilton.StringAttr("error.type", elasticErrorType(err)))
+			attrs = append(attrs, hilton.Attr("error.type", elasticErrorType(err)))
 		}
 		duration.Record(ctx, took, attrs...)
 		span.End()
@@ -142,15 +142,15 @@ func recordStatement(stmt any) hilton.Attribute {
 
 	switch v := stmt.(type) {
 	case string:
-		return hilton.StringAttr(key, truncate(v))
+		return hilton.Attr(key, truncate(v))
 	case []byte:
-		return hilton.StringAttr(key, truncate(string(v)))
+		return hilton.Attr(key, truncate(string(v)))
 	default:
 		r, err := json.Marshal(v)
 		if err != nil {
-			return hilton.StringAttr(key, "error_marshaling_body")
+			return hilton.Attr(key, "error_marshaling_body")
 		}
-		return hilton.StringAttr(key, truncate(string(r)))
+		return hilton.Attr(key, truncate(string(r)))
 	}
 }
 
