@@ -5,7 +5,7 @@ go 1.27.0
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.19.7
 	gitlab.com/gorib/hilton v1.1.2
-	gitlab.com/gorib/pry v1.2.4
+	gitlab.com/gorib/pry v1.2.7
 )
 
 require (
