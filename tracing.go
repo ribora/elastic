@@ -90,12 +90,29 @@ func (t *traced) DeleteByQuery(ctx context.Context, index string, query any) ([]
 	})
 }
 
-func execute[T any](ctx context.Context, op string, index string, statement any, f func(context.Context) (T, error)) (res T, err error) {
-	provider := hilton.ProviderFromContext(ctx)
-	meter := provider.Meter(instrumentationName)
-	duration := meter.Histogram("db.client.operation.duration", hilton.WithUnit("s"))
+// Cached: the provider arrives per call, and building instruments on every
+// query is not free.
+var instruments = hilton.NewInstruments(func(p hilton.Provider) elasticState {
+	return elasticState{
+		tracer: p.Tracer(instrumentationName),
+		duration: p.Meter(instrumentationName).Histogram("db.client.operation.duration",
+			hilton.WithDescription("Duration of Elasticsearch client operations"),
+			hilton.WithUnit("s"),
+			hilton.WithSecondsBoundaries(),
+		),
+	}
+})
 
-	ctx, span := provider.Tracer(instrumentationName).Start(ctx, "elastic."+op,
+type elasticState struct {
+	tracer   hilton.Tracer
+	duration hilton.Histogram
+}
+
+func execute[T any](ctx context.Context, op string, index string, statement any, f func(context.Context) (T, error)) (res T, err error) {
+	state := instruments.FromContext(ctx)
+	duration := state.duration
+
+	ctx, span := state.tracer.Start(ctx, "elastic."+op,
 		hilton.WithSpanKind(hilton.SpanKindClient),
 		hilton.WithAttributes(
 			hilton.Attr("db.system.name", "elasticsearch"),
