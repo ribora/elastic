@@ -23,8 +23,8 @@ github.com/stretchr/testify v1.12.1 h1:EuwCh5fleGS7H32xRwO3wRGT7DxrDhLAT6FF8MpWD
 github.com/stretchr/testify v1.12.1/go.mod h1:MDEgiDPPsNp5cuIrHPPCyornHKgEVbtFUmoNlxoYthg=
 gitlab.com/gorib/failure v1.2.2 h1:84FOQ6XyiWTSrufPQCswnkCN1h9FgdUM3fl/sQgnd5E=
 gitlab.com/gorib/failure v1.2.2/go.mod h1:7DKPMm7+1dy0xxQpBDhtH+cutGCKwwOcp8pxu4OIOo8=
-gitlab.com/gorib/hilton v1.2.2 h1:cetFZFMV4toNCZX2819X7xjcVvq8Dk3go3rUX55Xzcc=
-gitlab.com/gorib/hilton v1.2.2/go.mod h1:qT6ngLxPppy7nhBW9/PDgGyJP8jx5OaTO6GMhu7RdKA=
+gitlab.com/gorib/hilton v1.2.3 h1:fJj+Su2NGzOx5e08lUSXTtFLRrdqJRdDjYbO1mBTKlg=
+gitlab.com/gorib/hilton v1.2.3/go.mod h1:qT6ngLxPppy7nhBW9/PDgGyJP8jx5OaTO6GMhu7RdKA=
 gitlab.com/gorib/pry v1.3.0 h1:Wf3zXlZadt6J3RZUcB+NbvuVHHHJP0hA6tIBjRh8ZiU=
 gitlab.com/gorib/pry v1.3.0/go.mod h1:C98eXTDK7u7wIdgHfVpr6QTRLxAFKGiknFxhx951ong=
 gitlab.com/gorib/session v1.1.2 h1:3001DUqXwrYAcX41a3IGNiePwBHuQD55DQ7VJshmEEI=
