@@ -33,8 +33,21 @@ Two sentinels, both wrapped with context:
 
 | Error | When |
 |---|---|
-| `ErrWrongResponse` | Elasticsearch answered with an error status; the message carries the status, the `error.type` and the `reason` from the body |
+| `ErrWrongResponse` | Elasticsearch answered with an error status |
 | `ErrUnknownResponse` | the error body could not be decoded at all |
+
+When the body decoded, the error is a `*ResponseError` carrying `Status`,
+`Type` and `Reason` as fields. It matches `errors.Is(err, ErrWrongResponse)`
+like any other, and `Type` is Elasticsearch's own name for the failure
+(`index_not_found_exception`, `version_conflict_engine_exception`), which is
+what the `error.type` metric attribute reports:
+
+```go
+var re *elastic.ResponseError
+if errors.As(err, &re) && re.Type == "version_conflict_engine_exception" {
+    // retry
+}
+```
 
 `IndexExists` is the exception: a 404 is `false, nil`, not an error, because
 "the index is not there" is the question being asked.
