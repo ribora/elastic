@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 	"unicode/utf8"
 
@@ -144,6 +143,8 @@ func execute[T any](ctx context.Context, op string, index string, statement any,
 	return f(ctx)
 }
 
+const otherErrorType = "_OTHER"
+
 func elasticErrorType(err error) string {
 	switch {
 	case errors.Is(err, ErrWrongResponse):
@@ -151,7 +152,7 @@ func elasticErrorType(err error) string {
 	case errors.Is(err, ErrUnknownResponse):
 		return "unknown_response"
 	}
-	return fmt.Sprintf("%T", err)
+	return otherErrorType
 }
 
 func recordStatement(stmt any) hilton.Attribute {
