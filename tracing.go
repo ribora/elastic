@@ -146,6 +146,9 @@ func execute[T any](ctx context.Context, op string, index string, statement any,
 const otherErrorType = "_OTHER"
 
 func elasticErrorType(err error) string {
+	if re, ok := errors.AsType[*ResponseError](err); ok && re.Type != "" {
+		return re.Type
+	}
 	switch {
 	case errors.Is(err, ErrWrongResponse):
 		return "wrong_response"

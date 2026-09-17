@@ -137,7 +137,7 @@ func (c *baseClient) do(ctx context.Context, worker func(ctx context.Context) (*
 		if err = json.Unmarshal(data, &e); err != nil {
 			return nil, fmt.Errorf("%w: failed to decode: %w", ErrUnknownResponse, err)
 		}
-		errType, errReason := "unknown", "unknown"
+		var errType, errReason string
 		if inner, ok := e["error"].(map[string]any); ok {
 			if v, ok := inner["type"].(string); ok {
 				errType = v
@@ -146,7 +146,7 @@ func (c *baseClient) do(ctx context.Context, worker func(ctx context.Context) (*
 				errReason = v
 			}
 		}
-		return nil, fmt.Errorf("%w: [%s] {%s}: {%s}", ErrWrongResponse, result.Status(), errType, errReason)
+		return nil, &ResponseError{Status: result.Status(), Type: errType, Reason: errReason}
 	}
 
 	return data, nil
