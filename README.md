@@ -62,7 +62,7 @@ into `db.client.operation.duration` (seconds):
 | `db.system.name` | `elasticsearch` |
 | `db.operation.name` | `search`, `bulk`, … |
 | `db.collection.name` | the index, on the span |
-| `error.type` | `wrong_response`, `unknown_response`, or the Go type |
+| `error.type` | the cluster's own exception type, else `wrong_response`, `unknown_response` or `_OTHER` |
 
 The provider comes from the context per call, and instruments are cached
 against it by `hilton.NewInstruments` rather than rebuilt per query.
