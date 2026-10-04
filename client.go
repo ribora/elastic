@@ -106,6 +106,15 @@ func (c *baseClient) IndexCreate(ctx context.Context, index string, mappings any
 	})
 }
 
+func (c *baseClient) IndexDelete(ctx context.Context, index string) ([]byte, error) {
+	return c.do(ctx, func(ct context.Context) (*esapi.Response, error) {
+		return c.client.Indices.Delete(
+			[]string{c.prefix + index},
+			c.client.Indices.Delete.WithContext(ct),
+		)
+	})
+}
+
 func (c *baseClient) DeleteByQuery(ctx context.Context, index string, query any) ([]byte, error) {
 	return c.do(ctx, func(ct context.Context) (*esapi.Response, error) {
 		payload, err := json.Marshal(query)

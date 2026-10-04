@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -79,5 +81,26 @@ func TestDoReturnsTheBodyWhenTheStatusIsFine(t *testing.T) {
 	}
 	if string(data) != `{"hits":[]}` {
 		t.Errorf("data = %s", data)
+	}
+}
+
+func TestIndexDeleteSendsThePrefixedName(t *testing.T) {
+	var method, path string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		method, path = r.Method, r.URL.Path
+		w.Header().Set("X-Elastic-Product", "Elasticsearch")
+		_, _ = w.Write([]byte(`{"acknowledged":true}`))
+	}))
+	t.Cleanup(srv.Close)
+	c, err := newClient(srv.URL, "test_", nil)
+	if err != nil {
+		t.Fatalf("client: %v", err)
+	}
+
+	if _, err = c.IndexDelete(t.Context(), "orders"); err != nil {
+		t.Fatalf("delete: %v", err)
+	}
+	if method != http.MethodDelete || path != "/test_orders" {
+		t.Errorf("request = %s %s, want DELETE /test_orders", method, path)
 	}
 }

@@ -22,6 +22,7 @@ type Client interface {
 	Bulk(ctx context.Context, index string, body []byte) ([]byte, error)
 	IndexExists(ctx context.Context, index string) (bool, error)
 	IndexCreate(ctx context.Context, index string, mappings any) ([]byte, error)
+	IndexDelete(ctx context.Context, index string) ([]byte, error)
 	DeleteByQuery(ctx context.Context, index string, query any) ([]byte, error)
 }
 
@@ -80,6 +81,12 @@ func (t *traced) IndexExists(ctx context.Context, index string) (bool, error) {
 func (t *traced) IndexCreate(ctx context.Context, index string, mappings any) ([]byte, error) {
 	return execute(ctx, "indexCreate", index, mappings, func(ctx context.Context) ([]byte, error) {
 		return t.inner.IndexCreate(ctx, index, mappings)
+	})
+}
+
+func (t *traced) IndexDelete(ctx context.Context, index string) ([]byte, error) {
+	return execute(ctx, "indexDelete", index, nil, func(ctx context.Context) ([]byte, error) {
+		return t.inner.IndexDelete(ctx, index)
 	})
 }
 

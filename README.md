@@ -1,6 +1,6 @@
 # gorib/elastic
 
-An Elasticsearch client narrowed to six operations, with tracing and metrics in
+An Elasticsearch client narrowed to seven operations, with tracing and metrics in
 front of them and a fixed index prefix behind them.
 
 ```go
@@ -21,6 +21,7 @@ model the service does not use.
 | `Bulk` | `_bulk` |
 | `IndexExists` | `HEAD /<index>` |
 | `IndexCreate` | `PUT /<index>` with mappings |
+| `IndexDelete` | `DELETE /<index>` |
 | `DeleteByQuery` | `_delete_by_query` |
 
 The prefix passed to `New` is prepended to every index name, which is how one
@@ -50,7 +51,8 @@ if errors.As(err, &re) && re.Type == "version_conflict_engine_exception" {
 ```
 
 `IndexExists` is the exception: a 404 is `false, nil`, not an error, because
-"the index is not there" is the question being asked.
+"the index is not there" is the question being asked. `IndexDelete` on a
+missing index is an error like any other, typed `index_not_found_exception`.
 
 ## Telemetry
 
@@ -90,7 +92,7 @@ registration, so a service that wants different options declares its own.
 
 ## What it does not do
 
-- No index management beyond create and exists — no aliases, no templates, no
+- No index management beyond create, exists and delete — no aliases, no templates, no
   refresh, no reindex.
 - No document-level API: no single `Get`, `Index` or `Update`; write through
   `Bulk`.

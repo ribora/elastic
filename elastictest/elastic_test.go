@@ -1,6 +1,7 @@
 package elastictest
 
 import (
+	"cmp"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -20,7 +21,8 @@ type call struct {
 type fake struct {
 	mu      sync.Mutex
 	calls   []call
-	missing bool // HEAD on an index answers 404
+	missing bool   // HEAD on an index answers 404
+	listing string // what _cat/indices answers
 }
 
 func (f *fake) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +40,10 @@ func (f *fake) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodHead && missing {
 		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if strings.HasPrefix(r.URL.Path, "/_cat/") {
+		_, _ = w.Write([]byte(cmp.Or(f.listing, `[]`)))
 		return
 	}
 	_, _ = w.Write([]byte(`{}`))
@@ -203,7 +209,7 @@ func TestUrlWinsOverTheEnvironment(t *testing.T) {
 	t.Setenv("TEST_ES", "http://from-env:9200")
 	subject := New(Env("TEST_ES"), Url("http://explicit:9200"))
 
-	if err := subject.resolve(); err != nil {
+	if err := subject.resolve(t.Context()); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
 	if subject.Url() != "http://explicit:9200" {
@@ -215,7 +221,7 @@ func TestEnvKeysAreTriedInOrder(t *testing.T) {
 	t.Setenv("SECOND_ES", "http://second:9200")
 	subject := New(Env("FIRST_ES", "SECOND_ES"))
 
-	if err := subject.resolve(); err != nil {
+	if err := subject.resolve(t.Context()); err != nil {
 		t.Fatalf("resolve: %v", err)
 	}
 	if subject.Url() != "http://second:9200" {
@@ -224,7 +230,7 @@ func TestEnvKeysAreTriedInOrder(t *testing.T) {
 }
 
 func TestMissingAddressNamesTheVariables(t *testing.T) {
-	err := New(Env("MERCATOR_TEST_ES", "FALLBACK_ES")).resolve()
+	err := New(Env("MERCATOR_TEST_ES", "FALLBACK_ES")).resolve(t.Context())
 
 	if err == nil || !strings.Contains(err.Error(), "MERCATOR_TEST_ES or FALLBACK_ES") {
 		t.Fatalf("resolve: %v", err)
