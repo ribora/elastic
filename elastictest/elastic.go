@@ -82,13 +82,22 @@ type Elastic struct {
 
 	client *http.Client
 	search elastic.Client
+	fault  fault
 }
 
 func (e *Elastic) Name() string { return "elasticsearch" }
 
 // The service's own constructor: a client built another way here would put the
 // harness's idea of a connection under the test instead of the service's.
-func (e *Elastic) Client() elastic.Client { return e.search }
+func (e *Elastic) Client() elastic.Client {
+	if e.search == nil {
+		return nil
+	}
+	return &faultyClient{inner: e.search, fault: &e.fault}
+}
+
+// Every Client handed out fails with err until Reset; nil reads as a refused connection.
+func (e *Elastic) FailWith(err error) { e.fault.fail(err) }
 
 func (e *Elastic) Provision(ctx context.Context) error {
 	if err := e.resolve(ctx); err != nil {
@@ -131,6 +140,7 @@ func (e *Elastic) Migrate(ctx context.Context) error {
 // Documents go, the mapping stays. Without refresh=true the next scenario can
 // still read these rows.
 func (e *Elastic) Reset(ctx context.Context) error {
+	e.fault.heal()
 	for _, idx := range e.indices {
 		name := e.prefix + idx.name
 		path := "/" + name + "/_delete_by_query?refresh=true&conflicts=proceed"
