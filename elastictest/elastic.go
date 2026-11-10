@@ -1,5 +1,4 @@
 // Package elastictest runs a component test against a real elasticsearch.
-// See github.com/specrig/specrig-go/waffle/docs/harness.md.
 package elastictest
 
 import (

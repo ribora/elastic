@@ -9,10 +9,10 @@ c, err := elastic.New(host, "prod-", elastic.WithDebugLogger(logger))
 raw, err := c.Search(ctx, "products", query)
 ```
 
-Every method takes an index name without the prefix and returns the raw
-response body. Decoding is the caller's: a search response shape depends on the
-query, and a generic decode here would either lose information or invent a
-model the service does not use.
+Every method takes an index name without the prefix. All but `IndexExists`,
+which answers a bool, return the raw response body. Decoding is the caller's: a
+search response shape depends on the query, and a generic decode here would
+either lose information or invent a model the service does not use.
 
 | Method | Elasticsearch call |
 |---|---|
@@ -63,7 +63,7 @@ into `db.client.operation.duration` (seconds):
 |---|---|
 | `db.system.name` | `elasticsearch` |
 | `db.operation.name` | `search`, `bulk`, … |
-| `db.collection.name` | the index, on the span |
+| `db.collection.name` | the index as passed, without the prefix, on the span |
 | `error.type` | the cluster's own exception type, else `wrong_response`, `unknown_response` or `_OTHER` |
 
 The provider comes from the context per call, and instruments are cached
@@ -90,6 +90,48 @@ waffle registers `elastic.Client` under `config/service/elastic` from `ES_HOST`
 and `ES_INDEX` (the prefix), with the debug logger attached — a `di.Fallback()`
 registration, so a service that wants different options declares its own.
 
+## Testing
+
+`gitlab.com/gorib/elastic/elastictest` runs a component test over a real
+Elasticsearch.
+
+```go
+func setup(ctx context.Context, mappings any) (elastic.Client, error) {
+	es := elastictest.New(
+		elastictest.Env("TEST_ES_URL"),
+		elastictest.Docker("docker.elastic.co/elasticsearch/elasticsearch:8.19.7"),
+		elastictest.Prefix("test-"),
+		elastictest.Ephemeral(),
+		elastictest.Index("products", mappings),
+	)
+	if err := es.Provision(ctx); err != nil {
+		return nil, err
+	}
+	if err := es.Migrate(ctx); err != nil {
+		return nil, err
+	}
+	return es.Client(), nil
+}
+```
+
+- **Address.** The first that resolves: `Url`, then the `Env` variables in
+  order, then `Docker` (a loopback-only container that outlives the run). There
+  is no default address. When nothing resolves `Provision` fails naming the
+  variables to set, and an unreachable cluster fails it too — nothing is
+  skipped. Errors carry host and port, never the credentials in the URL.
+- **`Index(name, mappings)`** declares an index; `mappings` is the whole
+  create-index body. `Migrate` creates the missing ones and leaves an existing
+  one alone.
+- **`Prefix`** is the index prefix; **`Ephemeral`** appends the process id to it
+  so packages run side by side, and `Down` deletes the declared indices. A
+  service that builds its own client passes `es.Prefix()` to `elastic.New`,
+  answered after `Provision`.
+- **`Reset`** deletes the documents and keeps the mappings.
+- **`Refresh`** makes what was seeded through `Bulk` searchable: Elasticsearch is
+  near-real-time.
+- **`FailWith(err)`** fails every `Client` the resource handed out, with `err`
+  (nil reads as a refused connection), until the next `Reset`.
+
 ## What it does not do
 
 - No index management beyond create, exists and delete — no aliases, no templates, no
@@ -97,7 +139,8 @@ registration, so a service that wants different options declares its own.
 - No document-level API: no single `Get`, `Index` or `Update`; write through
   `Bulk`.
 - No pagination, scroll or PIT handling.
-- No retry or backoff, and no connection pooling configuration — a single host,
-  the defaults of `go-elasticsearch`.
+- No retry or backoff of its own, and no connection pooling configuration — a
+  single host, the defaults of `go-elasticsearch`, whose transport retries a
+  request up to three times on 502, 503, 504 and on transport errors.
 - No authentication options: if the cluster needs credentials, they belong in
   the URL and the client here does not help you keep them out of logs.
