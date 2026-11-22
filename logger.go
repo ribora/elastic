@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"gitlab.com/gorib/pry"
+	"github.com/ribora/pry"
 )
 
 func NewDebugLogger(l pry.Logger) *logger {

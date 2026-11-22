@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"gitlab.com/gorib/elastic"
+	"github.com/ribora/elastic"
 )
 
 // Measured at ~15 s on a laptop.

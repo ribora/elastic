@@ -1,11 +1,11 @@
-module gitlab.com/gorib/elastic
+module github.com/ribora/elastic
 
 go 1.27.0
 
 require (
 	github.com/elastic/go-elasticsearch/v8 v8.19.7
-	gitlab.com/gorib/hilton v1.2.5
-	gitlab.com/gorib/pry v1.4.3
+	github.com/ribora/hilton v1.3.0
+	github.com/ribora/pry v1.5.0
 )
 
 require (
@@ -13,8 +13,8 @@ require (
 	github.com/elastic/elastic-transport-go/v8 v8.11.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	gitlab.com/gorib/failure v1.4.1 // indirect
-	gitlab.com/gorib/session v1.2.1 // indirect
+	github.com/ribora/failure v1.5.0 // indirect
+	github.com/ribora/session v1.3.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.45.0 // indirect
 	go.opentelemetry.io/otel/metric v1.45.0 // indirect

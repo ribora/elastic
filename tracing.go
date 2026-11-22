@@ -7,12 +7,12 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"gitlab.com/gorib/hilton"
-	"gitlab.com/gorib/pry"
+	"github.com/ribora/hilton"
+	"github.com/ribora/pry"
 )
 
 const (
-	instrumentationName = "gitlab.com/gorib/elastic"
+	instrumentationName = "github.com/ribora/elastic"
 	maxStatementSize    = 10240 // 10KB limit for telemetry
 )
 

@@ -7,7 +7,7 @@ import (
 	"sync/atomic"
 	"syscall"
 
-	"gitlab.com/gorib/elastic"
+	"github.com/ribora/elastic"
 )
 
 // What a server that went away looks like from the client.

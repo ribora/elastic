@@ -92,7 +92,7 @@ registration, so a service that wants different options declares its own.
 
 ## Testing
 
-`gitlab.com/gorib/elastic/elastictest` runs a component test over a real
+`github.com/ribora/elastic/elastictest` runs a component test over a real
 Elasticsearch.
 
 ```go

@@ -10,7 +10,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 
-	"gitlab.com/gorib/pry"
+	"github.com/ribora/pry"
 )
 
 func newClient(host string, prefix string, debugLogger pry.Logger) (*baseClient, error) {
