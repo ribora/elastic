@@ -12,7 +12,7 @@ import (
 // One container per repository, like postgres: a start takes ~15 s and an index
 // ~0.15 s, so the container is kept and the indices are what a run throws away.
 const (
-	defaultContainer = "gorib-harness-es"
+	defaultContainer = "ribora-harness-es"
 	defaultPort      = 59200
 
 	runtimeTimeout = 30 * time.Second

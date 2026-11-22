@@ -1,4 +1,4 @@
-# gorib/elastic
+# ribora/elastic
 
 An Elasticsearch client narrowed to seven operations, with tracing and metrics in
 front of them and a fixed index prefix behind them.
